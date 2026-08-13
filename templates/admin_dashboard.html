@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | SRMS{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-5">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Welcome back, Administrator</h1>
+            <p class="text-muted mb-0">Overview of student, teacher and subject configurations</p>
+        </div>
+    </div>
+</div>
+
+<!-- STATS OVERVIEW -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="glass-panel p-4 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Total Students</span>
+                <h2 class="text-white display-6 mt-1 mb-0">{{ stats.students }}</h2>
+            </div>
+            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                <i class="bi bi-people-fill" style="font-size: 2rem;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-panel p-4 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Registered Teachers</span>
+                <h2 class="text-white display-6 mt-1 mb-0">{{ stats.teachers }}</h2>
+            </div>
+            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                <i class="bi bi-person-badge-fill" style="font-size: 2rem;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-panel p-4 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Total Subjects</span>
+                <h2 class="text-white display-6 mt-1 mb-0">{{ stats.subjects }}</h2>
+            </div>
+            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                <i class="bi bi-book-half" style="font-size: 2rem;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN GRID OF ACTIONS -->
+<h3 class="text-white mb-4"><i class="bi bi-grid-fill text-primary me-2"></i> Manage Resources</h3>
+<div class="row g-4 mb-5">
+    
+    <!-- STUDENTS ACTIONS -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h4 class="text-white mb-2"><i class="bi bi-people-fill text-primary me-2"></i> Students</h4>
+                <p class="text-muted">Register new student files, assign semesters, courses, and keep database profiles up-to-date.</p>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <a href="{{ url_for('new_student') }}" class="btn-glow btn-sm w-100 justify-content-center"><i class="bi bi-plus-lg"></i> Add Student</a>
+                <a href="{{ url_for('view_students') }}" class="btn btn-secondary-custom btn-sm w-100 justify-content-center align-items-center d-inline-flex" style="border-radius: 30px;"><i class="bi bi-eye-fill me-2"></i> View All</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEACHERS ACTIONS -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h4 class="text-white mb-2"><i class="bi bi-person-badge-fill text-warning me-2"></i> Teachers</h4>
+                <p class="text-muted">Register teachers, update courses assigned to them, and review their login credentials.</p>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <a href="{{ url_for('new_teacher') }}" class="btn-glow btn-accent btn-sm w-100 justify-content-center"><i class="bi bi-plus-lg"></i> Add Teacher</a>
+                <a href="{{ url_for('view_teachers') }}" class="btn btn-secondary-custom btn-sm w-100 justify-content-center align-items-center d-inline-flex" style="border-radius: 30px;"><i class="bi bi-eye-fill me-2"></i> View All</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBJECTS ACTIONS -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h4 class="text-white mb-2"><i class="bi bi-book-half text-success me-2"></i> Subjects</h4>
+                <p class="text-muted">Define subjects list, map semester requirements, and adjust curricula options.</p>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <a href="{{ url_for('new_subject') }}" class="btn-glow btn-sm btn-success w-100 justify-content-center" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="bi bi-plus-lg"></i> Add Subject</a>
+                <a href="{{ url_for('view_subjects') }}" class="btn btn-secondary-custom btn-sm w-100 justify-content-center align-items-center d-inline-flex" style="border-radius: 30px;"><i class="bi bi-eye-fill me-2"></i> View All</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- REPORTS SECTION -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="glass-panel p-4 h-100">
+            <h4 class="text-white mb-3"><i class="bi bi-file-earmark-bar-graph-fill text-danger me-2"></i> Performance Reports</h4>
+            <p class="text-muted">Track the performance reports by semester. Download scores, compare averages, and verify class passing rates.</p>
+            <div class="mt-4">
+                <a href="{{ url_for('marks_report') }}" class="btn-glow w-100 justify-content-center btn-danger" style="background: linear-gradient(135deg, #ef4444, #db2777); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+                    <i class="bi bi-bar-chart-line-fill"></i> Access Marks Reports
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- STATS CHART (SVG Visualization) -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4">
+            <h4 class="text-white mb-3"><i class="bi bi-pie-chart-fill text-accent me-2"></i> Quick Distribution</h4>
+            <div class="text-center py-3">
+                <svg width="220" height="150" viewBox="0 0 220 150">
+                    <!-- Base background grid lines -->
+                    <line x1="20" y1="120" x2="200" y2="120" stroke="#334155" stroke-width="2"/>
+                    <line x1="20" y1="20" x2="20" y2="120" stroke="#334155" stroke-width="2"/>
+                    
+                    <!-- Bar 1 (Students) -->
+                    <rect x="45" y="{{ 120 - [((stats.students * 80) / (stats.students + stats.teachers + stats.subjects + 1)) | int, 90] | min }}" width="30" height="{{ [((stats.students * 80) / (stats.students + stats.teachers + stats.subjects + 1)) | int, 90] | min }}" fill="#6366f1" rx="4"/>
+                    <!-- Bar 2 (Teachers) -->
+                    <rect x="95" y="{{ 120 - [((stats.teachers * 80) / (stats.students + stats.teachers + stats.subjects + 1)) | int, 90] | min }}" width="30" height="{{ [((stats.teachers * 80) / (stats.students + stats.teachers + stats.subjects + 1)) | int, 90] | min }}" fill="#a855f7" rx="4"/>
+                    <!-- Bar 3 (Subjects) -->
+                    <rect x="145" y="{{ 120 - [((stats.subjects * 80) / (stats.students + stats.teachers + stats.subjects + 1)) | int, 90] | min }}" width="30" height="{{ [((stats.subjects * 80) / (stats.students + stats.teachers + stats.subjects + 1)) | int, 90] | min }}" fill="#10b981" rx="4"/>
+                    
+                    <text x="60" y="140" fill="#94a3b8" font-size="9" text-anchor="middle">STU</text>
+                    <text x="110" y="140" fill="#94a3b8" font-size="9" text-anchor="middle">TCH</text>
+                    <text x="160" y="140" fill="#94a3b8" font-size="9" text-anchor="middle">SUB</text>
+                </svg>
+                <div class="d-flex justify-content-center gap-4 mt-2">
+                    <small class="text-muted"><span class="badge bg-indigo" style="background-color: #6366f1;">STU</span> Students ({{ stats.students }})</small>
+                    <small class="text-muted"><span class="badge bg-purple" style="background-color: #a855f7;">TCH</span> Teachers ({{ stats.teachers }})</small>
+                    <small class="text-muted"><span class="badge bg-emerald" style="background-color: #10b981;">SUB</span> Subjects ({{ stats.subjects }})</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

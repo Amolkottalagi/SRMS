@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{% if teacher %}Edit Teacher{% else %}Add Teacher{% endif %} | SRMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center w-100 m-0">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="glass-panel p-5 animate-fade-in">
+            
+            <div class="d-flex align-items-center gap-3 mb-5">
+                <a href="{{ url_for('view_teachers') }}" class="btn btn-sm btn-secondary-custom p-2 rounded-circle" title="Back to Teachers">
+                    <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
+                </a>
+                <div>
+                    <h2 class="text-white mb-0">{% if teacher %}✏️ Edit Teacher{% else %}👤 Add Teacher{% endif %}</h2>
+                    <p class="text-muted mb-0">{% if teacher %}Modify details of {{ teacher.name }}{% else %}Fill details to register a new teacher account{% endif %}</p>
+                </div>
+            </div>
+
+            <form action="{% if teacher %}{{ url_for('edit_teacher', teacher_db_id=teacher.id) }}{% else %}{{ url_for('new_teacher') }}{% endif %}" method="post">
+                
+                <div class="mb-3">
+                    <label class="form-label text-white-50">Teacher ID</label>
+                    <input type="text" name="teacher_id" class="form-control form-glass" 
+                           value="{{ teacher.teacher_id if teacher else '' }}" 
+                           {% if teacher %}readonly{% endif %} required placeholder="e.g. T101">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-white-50">Full Name</label>
+                    <input type="text" name="name" class="form-control form-glass" 
+                           value="{{ teacher.name if teacher else '' }}" required placeholder="e.g. Prof. Alan Turing">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-white-50">Course Assigned</label>
+                    <input type="text" name="course" class="form-control form-glass" 
+                           value="{{ teacher.course if teacher else '' }}" required placeholder="e.g. BCA, BCS">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-white-50">Password {% if teacher %}<small class="text-muted">(Leave blank to keep current password)</small>{% endif %}</label>
+                    <input type="password" name="password" class="form-control form-glass" 
+                           {% if not teacher %}required{% endif %} placeholder="{% if teacher %}Enter new password if changing{% else %}Enter password{% endif %}">
+                </div>
+
+                <button type="submit" class="btn-glow btn-accent w-100 justify-content-center">
+                    <i class="bi bi-check-circle-fill"></i> {% if teacher %}Update Teacher{% else %}Save Teacher{% endif %}
+                </button>
+
+            </form>
+
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

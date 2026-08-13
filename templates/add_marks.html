@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Add Marks | SRMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center w-100 m-0">
+    <div class="col-md-10 col-lg-8">
+        
+        <div class="glass-panel p-5 animate-fade-in">
+            
+            <div class="d-flex align-items-center gap-3 mb-5">
+                <a href="{{ url_for('teacher_dashboard') if session.get('role') == 'teacher' else url_for('admin_dashboard') }}" class="btn btn-sm btn-secondary-custom p-2 rounded-circle" title="Back to Dashboard">
+                    <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
+                </a>
+                <div>
+                    <h2 class="text-white mb-0">📝 Add Student Marks</h2>
+                    <p class="text-muted mb-0">Record semester subject grades for a student</p>
+                </div>
+            </div>
+
+            <!-- STEP 1: Enter Student Details & Load Subjects -->
+            <form action="{{ url_for('load_subjects_for_marks') }}" method="post" class="mb-5">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-white-50">Student Roll No</label>
+                        <input type="number" name="roll_no" class="form-control form-glass" 
+                               value="{{ roll_no if roll_no else '' }}" required placeholder="e.g. 1001" 
+                               {% if subjects %}readonly{% endif %}>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-white-50">Course</label>
+                        <input type="text" name="course" class="form-control form-glass" 
+                               value="{{ course if course else '' }}" required placeholder="e.g. BCA"
+                               {% if subjects %}readonly{% endif %}>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-white-50">Semester</label>
+                        {% if subjects %}
+                            <input type="text" class="form-control form-glass" value="Semester {{ semester }}" readonly>
+                            <input type="hidden" name="semester" value="{{ semester }}">
+                        {% else %}
+                            <select name="semester" class="form-select form-glass" required>
+                                <option value="">-- Select --</option>
+                                {% for i in range(1, 9) %}
+                                    <option value="{{ i }}" {% if semester == i %}selected{% endif %}>Semester {{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if not subjects %}
+                    <button type="submit" class="btn-glow w-100 justify-content-center mt-4">
+                        <i class="bi bi-search"></i> Load Semester Subjects
+                    </button>
+                {% endif %}
+            </form>
+
+            <!-- STEP 2: Render Subject Marks Forms if subjects loaded -->
+            {% if subjects %}
+                <hr class="border-secondary my-5">
+                <h4 class="text-white mb-4"><i class="bi bi-card-checklist text-accent me-2"></i> Enter Subject Scores</h4>
+                
+                <form action="{{ url_for('save_student_marks') }}" method="post">
+                    <input type="hidden" name="roll_no" value="{{ roll_no }}">
+                    <input type="hidden" name="course" value="{{ course }}">
+                    <input type="hidden" name="semester" value="{{ semester }}">
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table-glass">
+                            <thead>
+                                <tr>
+                                    <th>Subject Name</th>
+                                    <th style="width: 200px;">Marks (0 - 100)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sub in subjects %}
+                                    <tr>
+                                        <td class="fw-bold text-white">{{ sub.subject_name }}</td>
+                                        <td>
+                                            <input type="number" name="marks_{{ sub.id }}" min="0" max="100" class="form-control form-glass text-center" required placeholder="0">
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn-glow btn-accent w-100 justify-content-center">
+                            <i class="bi bi-save"></i> Save Student Marks
+                        </button>
+                        <a href="{{ url_for('add_marks_portal') }}" class="btn btn-secondary-custom px-4 align-items-center d-inline-flex" style="border-radius: 30px;">Reset</a>
+                    </div>
+                </form>
+            {% endif %}
+
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

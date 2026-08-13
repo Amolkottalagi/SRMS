@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Student Management | SRMS{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Student Management</h1>
+            <p class="text-muted mb-0">View, register, and update student profiles</p>
+        </div>
+        <a href="{{ url_for('new_student') }}" class="btn-glow">
+            <i class="bi bi-person-plus-fill"></i> Register Student
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH AND FILTERS -->
+<div class="glass-panel p-4 mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+            <label class="form-label text-white-50 fw-bold" for="searchStudent">Search Students</label>
+            <div class="d-flex align-items-center gap-3 form-glass">
+                <i class="bi bi-search text-muted"></i>
+                <input type="text" id="searchStudent" class="border-0 w-100 ps-0 bg-transparent text-white" placeholder="Search by name, roll number, email..." style="outline: none;">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-white-50 fw-bold" for="filterCourse">Filter by Course</label>
+            <select id="filterCourse" class="form-select form-glass">
+                <option value="all">All Courses</option>
+                {% for c in courses %}
+                    <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-white-50 fw-bold" for="filterSemester">Filter by Semester</label>
+            <select id="filterSemester" class="form-select form-glass">
+                <option value="all">All Semesters</option>
+                {% for sem in semesters %}
+                    <option value="{{ sem }}">Semester {{ sem }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- STUDENTS TABLES BY GROUP -->
+<div id="studentGroupsContainer">
+    {% if not students %}
+        <div class="glass-panel p-5 text-center text-muted">
+            <i class="bi bi-people text-muted d-block mb-3" style="font-size: 3rem;"></i>
+            <h4>No students registered yet.</h4>
+            <p class="mb-0">Click "Register Student" at the top right to add profiles.</p>
+        </div>
+    {% else %}
+        {% for course, semester in sorted_groups %}
+            {% set group_students = grouped[(course, semester)] %}
+            <div class="glass-panel p-4 mb-4 student-group-panel animate-fade-in" data-course="{{ course }}" data-semester="{{ semester }}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-white mb-0">
+                        <i class="bi bi-mortarboard-fill text-primary me-2"></i>
+                        {{ course }} <span class="text-white-50">/</span> Semester {{ semester }}
+                    </h4>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-2 rounded-pill student-count-badge">
+                        {{ group_students|length }} student{% if group_students|length != 1 %}s{% endif %}
+                    </span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table-glass">
+                        <thead>
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Name</th>
+                                <th>Gender</th>
+                                <th>Date of Birth</th>
+                                <th>Email</th>
+                                <th>Contact No</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in group_students %}
+                                <tr class="student-row">
+                                    <td class="fw-bold text-white">{{ s.roll_no }}</td>
+                                    <td class="student-name text-white">{{ s.name }}</td>
+                                    <td>{{ s.gender }}</td>
+                                    <td>{{ s.dob }}</td>
+                                    <td>{{ s.email }}</td>
+                                    <td>{{ s.contact_no }}</td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <a href="{{ url_for('edit_student', roll_no=s.roll_no) }}" class="btn btn-sm btn-secondary-custom align-items-center d-inline-flex px-3 py-2" title="Edit Profile">
+                                                <i class="bi bi-pencil-square text-warning"></i>
+                                            </a>
+                                            <form action="{{ url_for('delete_student', roll_no=s.roll_no) }}" method="post" onsubmit="return confirm('Are you sure you want to delete student {{ s.name }}? This will delete all their marks.')">
+                                                <button type="submit" class="btn btn-sm btn-secondary-custom align-items-center d-inline-flex px-3 py-2" title="Delete Profile">
+                                                    <i class="bi bi-trash-fill text-danger"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Dynamic Search/Filter Feedback -->
+<div id="noStudentsAlert" class="glass-panel p-5 text-center text-muted" style="display: none;">
+    <i class="bi bi-search d-block mb-3" style="font-size: 3rem; color: var(--text-muted);"></i>
+    <h4>No students match your criteria.</h4>
+    <p class="mb-0">Try adjusting your search query or filters.</p>
+</div>
+
+<script>
+    function filterStudents() {
+        let query = document.getElementById('searchStudent').value.toLowerCase().trim();
+        let selectedCourse = document.getElementById('filterCourse').value;
+        let selectedSemester = document.getElementById('filterSemester').value;
+        
+        let groups = document.querySelectorAll('.student-group-panel');
+        let anyGroupVisible = false;
+        
+        groups.forEach(group => {
+            let groupCourse = group.getAttribute('data-course');
+            let groupSemester = group.getAttribute('data-semester');
+            
+            // Check filters matching
+            let courseMatch = (selectedCourse === 'all' || groupCourse === selectedCourse);
+            let semesterMatch = (selectedSemester === 'all' || groupSemester === selectedSemester);
+            
+            if (!courseMatch || !semesterMatch) {
+                group.style.display = 'none';
+                return;
+            }
+            
+            // Filter rows inside matches
+            let rows = group.querySelectorAll('.student-row');
+            let visibleRowsCount = 0;
+            
+            rows.forEach(row => {
+                let name = row.querySelector('.student-name').textContent.toLowerCase();
+                let rollNo = row.cells[0].textContent.toLowerCase();
+                let email = row.cells[4].textContent.toLowerCase();
+                let contact = row.cells[5].textContent.toLowerCase();
+                
+                let matchesSearch = !query || 
+                                    name.includes(query) || 
+                                    rollNo.includes(query) || 
+                                    email.includes(query) || 
+                                    contact.includes(query);
+                
+                if (matchesSearch) {
+                    row.style.display = '';
+                    visibleRowsCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            if (visibleRowsCount > 0) {
+                group.style.display = '';
+                let badge = group.querySelector('.student-count-badge');
+                if (badge) {
+                    badge.textContent = `${visibleRowsCount} student${visibleRowsCount !== 1 ? 's' : ''}`;
+                }
+                anyGroupVisible = true;
+            } else {
+                group.style.display = 'none';
+            }
+        });
+        
+        let noResultsAlert = document.getElementById('noStudentsAlert');
+        if (anyGroupVisible) {
+            noResultsAlert.style.display = 'none';
+        } else {
+            noResultsAlert.style.display = 'block';
+        }
+    }
+
+    document.getElementById('searchStudent').addEventListener('input', filterStudents);
+    document.getElementById('filterCourse').addEventListener('change', filterStudents);
+    document.getElementById('filterSemester').addEventListener('change', filterStudents);
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Marks Report | SRMS{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Semester Marks Report</h1>
+            <p class="text-muted mb-0">Aggregate view of student marks by semester</p>
+        </div>
+        <a href="{{ url_for('add_marks_portal') }}" class="btn-glow">
+            <i class="bi bi-pencil-square"></i> Record Marks
+        </a>
+    </div>
+</div>
+
+<!-- SEMESTER SELECT FILTER -->
+<div class="glass-panel p-4 mb-5">
+    <form action="{{ url_for('marks_report') }}" method="get" class="row g-3 align-items-end justify-content-center">
+        <div class="col-md-4">
+            <label class="form-label text-white-50 fw-bold">Select Semester to View</label>
+            <select name="semester" class="form-select form-glass" required onchange="this.form.submit()">
+                <option value="">-- Select Semester --</option>
+                {% for i in range(1, 7) %}
+                    <option value="{{ i }}" {% if semester == i %}selected{% endif %}>Semester {{ i }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- REPORT CONTAINER -->
+{% if semester %}
+    <div class="glass-panel p-4 animate-fade-in">
+        <h3 class="text-white mb-4"><i class="bi bi-bar-chart-line-fill text-accent me-2"></i> Report Card — Semester {{ semester }}</h3>
+        
+        {% if not report %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-journal-x d-block mb-3" style="font-size: 2.5rem;"></i>
+                No student marks recorded for Semester {{ semester }} yet.
+            </div>
+        {% else %}
+            {% set subject_headers = report[0].subjects.keys() %}
+            <div class="table-responsive">
+                <table class="table-glass text-center">
+                    <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th class="text-start">Name</th>
+                            <th>Course</th>
+                            <th>Semester</th>
+                            {% for sub in subject_headers %}
+                                <th>{{ sub }}</th>
+                            {% endfor %}
+                            <th class="fw-bold">Total</th>
+                            <th class="fw-bold text-accent">Percentage</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in report %}
+                            {% set total_marks = namespace(val=0) %}
+                            <tr>
+                                <td class="fw-bold text-white">{{ row.roll_no }}</td>
+                                <td class="text-start text-white-50">{{ row.name }}</td>
+                                <td><span class="badge bg-primary bg-opacity-20 text-primary">{{ row.course }}</span></td>
+                                <td>Sem {{ row.semester }}</td>
+                                
+                                {% for sub in subject_headers %}
+                                    {% set m = row.subjects.get(sub, 0) %}
+                                    {% set total_marks.val = total_marks.val + m %}
+                                    <td>{{ m }}</td>
+                                {% endfor %}
+                                
+                                <td class="fw-bold text-white">{{ total_marks.val }}</td>
+                                <td class="fw-bold text-accent">
+                                    {% set total_possible = subject_headers|length * 100 %}
+                                    {% set pct = (total_marks.val / total_possible * 100) if total_possible > 0 else 0 %}
+                                    {{ "%.2f"|format(pct) }}%
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2">
+                                        <a href="{{ url_for('edit_marks', roll_no=row.roll_no) }}" class="btn btn-sm btn-secondary-custom align-items-center d-inline-flex px-3 py-2" title="Edit Marks">
+                                            <i class="bi bi-pencil text-warning"></i>
+                                        </a>
+                                        <form action="{{ url_for('delete_marks', roll_no=row.roll_no, semester=semester) }}" method="post" onsubmit="return confirm('Delete marks for student {{ row.name }}?')">
+                                            <button type="submit" class="btn btn-sm btn-secondary-custom align-items-center d-inline-flex px-3 py-2" title="Delete Marks">
+                                                <i class="bi bi-trash-fill text-danger"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

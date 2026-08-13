@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard | SRMS{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-5 animate-fade-in">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Teacher Workspace</h1>
+            <p class="text-muted mb-0">Welcome back, <strong>{{ session.username }}</strong></p>
+        </div>
+    </div>
+</div>
+
+<!-- INFO PANEL -->
+<div class="glass-panel p-4 mb-5 animate-fade-in delay-1">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+            <i class="bi bi-info-circle-fill" style="font-size: 1.5rem;"></i>
+        </div>
+        <div>
+            <h5 class="text-white mb-1">Your Course Assignment: <strong class="text-accent">{{ course }}</strong></h5>
+            <p class="text-muted mb-0">You are authorized to view reports and manage student grades for subjects under the <strong>{{ course }}</strong> curriculum.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ACTIONS GRID -->
+<h3 class="text-white mb-4 animate-fade-in delay-2"><i class="bi bi-grid-fill text-primary me-2"></i> Quick Actions</h3>
+<div class="row g-4 animate-fade-in delay-3">
+    
+    <!-- ADD MARKS -->
+    <div class="col-md-6">
+        <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h4 class="text-white mb-2"><i class="bi bi-pencil-square text-primary me-2"></i> Record Subject Marks</h4>
+                <p class="text-muted">Enter marks semester-wise for students enrolled in your course. Auto-loads required subjects.</p>
+            </div>
+            <div class="mt-4">
+                <a href="{{ url_for('add_marks_portal') }}" class="btn-glow w-100 justify-content-center">
+                    <i class="bi bi-plus-lg"></i> Record Marks
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW REPORTS -->
+    <div class="col-md-6">
+        <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h4 class="text-white mb-2"><i class="bi bi-file-earmark-bar-graph-fill text-accent me-2"></i> View Performance Reports</h4>
+                <p class="text-muted">Browse students, update recorded marks, and analyze semester grade distribution tables.</p>
+            </div>
+            <div class="mt-4">
+                <a href="{{ url_for('marks_report') }}" class="btn-glow btn-accent w-100 justify-content-center">
+                    <i class="bi bi-eye-fill"></i> View Reports
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | SRMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center w-100 m-0">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        
+        <div class="glass-panel p-5 animate-fade-in">
+            
+            <div class="text-center mb-5">
+                <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 mb-3">
+                    {% if role == 'admin' %}
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size: 2.5rem;"></i>
+                    {% elif role == 'teacher' %}
+                        <i class="bi bi-person-workspace text-accent" style="font-size: 2.5rem;"></i>
+                    {% else %}
+                        <i class="bi bi-mortarboard-fill text-success" style="font-size: 2.5rem;"></i>
+                    {% endif %}
+                </div>
+                <h2 class="text-white">
+                    {% if role == 'admin' %}
+                        Admin Login
+                    {% elif role == 'teacher' %}
+                        Teacher Login
+                    {% else %}
+                        Student Login
+                    {% endif %}
+                </h2>
+                <p class="text-muted">Enter your credentials to access your portal</p>
+            </div>
+
+            <!-- Login Form -->
+            <form action="{{ url_for('login_post', role=role) }}" method="post">
+                
+                {% if role == 'admin' %}
+                    <div class="mb-4">
+                        <label class="form-label text-white-50">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 border-color text-muted"><i class="bi bi-person-fill"></i></span>
+                            <input type="text" name="username" class="form-control form-glass border-start-0 ps-0" placeholder="Enter username" required>
+                        </div>
+                    </div>
+                {% elif role == 'teacher' %}
+                    <div class="mb-4">
+                        <label class="form-label text-white-50">Teacher ID</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 border-color text-muted"><i class="bi bi-person-badge-fill"></i></span>
+                            <input type="text" name="teacher_id" class="form-control form-glass border-start-0 ps-0" placeholder="Enter Teacher ID (e.g. T101)" required>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="mb-4">
+                        <label class="form-label text-white-50">Roll Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 border-color text-muted"><i class="bi bi-hash"></i></span>
+                            <input type="number" name="roll_no" class="form-control form-glass border-start-0 ps-0" placeholder="Enter Roll Number" required>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="mb-5">
+                    <label class="form-label text-white-50">
+                        {% if role == 'student' %}
+                            Date of Birth (DDMMYYYY)
+                        {% else %}
+                            Password
+                        {% endif %}
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 border-color text-muted"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" name="password" class="form-control form-glass border-start-0 ps-0" 
+                               placeholder="{% if role == 'student' %}e.g. 15052004{% else %}Enter password{% endif %}" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-glow w-100 justify-content-center mb-3 {% if role == 'teacher' %}btn-accent{% endif %}">
+                    <i class="bi bi-box-arrow-in-right"></i> Log In
+                </button>
+
+                <a href="{{ url_for('home') }}" class="btn btn-secondary-custom w-100 justify-content-center" style="border-radius: 30px; padding: 10px 24px; font-weight: 600;">
+                    <i class="bi bi-arrow-left"></i> Back to Portals
+                </a>
+            </form>
+
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

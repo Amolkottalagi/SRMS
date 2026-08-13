@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{% if student %}Edit Student{% else %}Register Student{% endif %} | SRMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center w-100 m-0">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="glass-panel p-5 animate-fade-in">
+            
+            <div class="d-flex align-items-center gap-3 mb-5">
+                <a href="{{ url_for('view_students') }}" class="btn btn-sm btn-secondary-custom p-2 rounded-circle" title="Back to Students">
+                    <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
+                </a>
+                <div>
+                    <h2 class="text-white mb-0">{% if student %}✏️ Edit Profile{% else %}👤 Register Student{% endif %}</h2>
+                    <p class="text-muted mb-0">{% if student %}Modify details of {{ student.name }}{% else %}Fill details to register a new student{% endif %}</p>
+                </div>
+            </div>
+
+            <form action="{% if student %}{{ url_for('edit_student', roll_no=student.roll_no) }}{% else %}{{ url_for('new_student') }}{% endif %}" method="post">
+                
+                <div class="row g-3">
+                    
+                    <!-- Roll No -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-white-50">Roll Number</label>
+                        <input type="number" name="roll_no" class="form-control form-glass" 
+                               value="{{ student.roll_no if student else '' }}" 
+                               {% if student %}readonly{% endif %} required placeholder="e.g. 1001">
+                    </div>
+
+                    <!-- Name -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-white-50">Full Name</label>
+                        <input type="text" name="name" class="form-control form-glass" 
+                               value="{{ student.name if student else '' }}" required placeholder="e.g. John Doe">
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-white-50">Gender</label>
+                        <select name="gender" class="form-select form-glass" required>
+                            <option value="">-- Select --</option>
+                            <option value="Male" {% if student and student.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if student and student.gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if student and student.gender == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Date of Birth -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-white-50">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control form-glass" 
+                               value="{{ student.dob if student else '' }}" required>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-white-50">Email</label>
+                        <input type="email" name="email" class="form-control form-glass" 
+                               value="{{ student.email if student else '' }}" required placeholder="email@example.com">
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-white-50">Contact Number</label>
+                        <input type="text" name="contact_no" class="form-control form-glass" 
+                               value="{{ student.contact_no if student else '' }}" required placeholder="e.g. +91 9876543210">
+                    </div>
+
+                    <!-- Course -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-white-50">Course</label>
+                        <input type="text" name="course" class="form-control form-glass" 
+                               value="{{ student.course if student else '' }}" required placeholder="e.g. BCS, BCA">
+                    </div>
+
+                    <!-- Semester -->
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label text-white-50">Semester</label>
+                        <input type="number" name="semester" class="form-control form-glass" 
+                               value="{{ student.semester if student else '' }}" required placeholder="e.g. 1">
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn-glow w-100 justify-content-center">
+                    <i class="bi bi-check-circle-fill"></i> {% if student %}Update Student{% else %}Register Student{% endif %}
+                </button>
+
+            </form>
+
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

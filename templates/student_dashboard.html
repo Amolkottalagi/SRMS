@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}My Results | SRMS{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .chart-container {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">My Performance Scorecard</h1>
+            <p class="text-muted mb-0">Overview of academic performance and grade statistics</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- STUDENT PROFILE CARD -->
+    <div class="col-lg-4">
+        <div class="glass-panel p-4 h-100 text-center d-flex flex-column justify-content-center">
+            <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 mb-3 text-primary mx-auto" style="width: fit-content;">
+                <i class="bi bi-person-bounding-box" style="font-size: 3rem;"></i>
+            </div>
+            <h3 class="text-white mb-1">{{ student.name }}</h3>
+            <p class="text-muted mb-3">Roll No: <strong>{{ student.roll_no }}</strong></p>
+            
+            <hr class="border-secondary my-3">
+            
+            <div class="text-start">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Course:</span>
+                    <span class="text-white fw-bold">{{ student.course }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Current Sem:</span>
+                    <span class="text-white fw-bold">Semester {{ student.semester }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Email:</span>
+                    <span class="text-white-50" style="font-size: 0.9rem;">{{ student.email }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Contact:</span>
+                    <span class="text-white-50" style="font-size: 0.9rem;">{{ student.contact_no }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CUMULATIVE STATS CARDS -->
+    <div class="col-lg-8">
+        <div class="glass-panel p-4 h-100">
+            <h5 class="text-white mb-4"><i class="bi bi-award-fill text-warning me-2"></i> Cumulative Performance Summary</h5>
+            
+            <div class="row g-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                        <small class="text-muted d-block mb-1">Cumulative Pct</small>
+                        <strong class="text-accent fs-3">{{ "%.2f"|format(overall_percentage) }}%</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                        <small class="text-muted d-block mb-1">Overall Grade</small>
+                        <strong class="text-white fs-3">{{ overall_grade }}</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                        <small class="text-muted d-block mb-1">Overall Status</small>
+                        <strong class="{% if overall_status == 'PASS' %}text-success{% else %}text-danger{% endif %} fs-3">{{ overall_status }}</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                        <small class="text-muted d-block mb-1">Terms Completed</small>
+                        <strong class="text-white fs-3">{{ sorted_sems|length }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 rounded d-flex justify-content-between align-items-center bg-primary bg-opacity-5 border border-primary border-opacity-10">
+                <div>
+                    <h6 class="text-white mb-1">Download All-Time Combined Report</h6>
+                    <small class="text-muted">Generates a PDF marksheet containing scores for all active semesters</small>
+                </div>
+                <a href="{{ url_for('download_result_pdf', roll_no=student.roll_no) }}" class="btn btn-sm btn-glow">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PERFORMANCE GRAPHS -->
+<div class="row g-4 mb-4">
+    <!-- Trend Graph -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4">
+            <h5 class="text-white mb-3"><i class="bi bi-graph-up text-primary me-2"></i> Semester-wise Progress (Class 1 to Now)</h5>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subject Bar Graph -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4">
+            <h5 class="text-white mb-3"><i class="bi bi-bar-chart-fill text-accent me-2"></i> Subject Performance — <span id="subjectChartTitle">Semesters</span></h5>
+            <div class="chart-container">
+                <canvas id="subjectChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DETAILED SEMESTER REPORT CARD -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="glass-panel p-4">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+                <div>
+                    <h4 class="text-white mb-1"><i class="bi bi-journal-text text-primary me-2"></i> Semester-wise Marksheet Details</h4>
+                    <p class="text-muted mb-0">Select a specific semester to review report tables and download marksheets</p>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="text-white-50 fw-bold mb-0 text-nowrap" for="semesterSelector">Select Semester:</label>
+                        <select id="semesterSelector" class="form-select form-glass w-auto">
+                            {% for sem in sorted_sems %}
+                                <option value="{{ sem }}" {% if sem == student.semester or loop.last %}selected{% endif %}>Semester {{ sem }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <a id="downloadSemPdfBtn" href="#" class="btn-glow btn-accent py-2">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> Download Term PDF
+                    </a>
+                </div>
+            </div>
+            
+            <div id="noMarksAlert" class="text-center py-5 text-muted" style="display: none;">
+                <i class="bi bi-file-earmark-lock-fill d-block mb-3" style="font-size: 2.5rem;"></i>
+                No marks records released for the selected semester yet.
+            </div>
+            
+            <div id="marksTableContainer" class="table-responsive">
+                <table class="table-glass">
+                    <thead>
+                        <tr>
+                            <th>Subject Name</th>
+                            <th class="text-center">Marks (Max 100)</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marksTableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+                
+                <!-- Performance Bar -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Semester Average Score</span>
+                        <span id="semesterAvgScore" class="text-white fw-bold">0%</span>
+                    </div>
+                    <div class="progress" style="height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; border: 1px solid var(--border-color);">
+                        <div id="semesterAvgProgress" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 5px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Safe dynamic data injection from Flask
+    const semStats = {{ sem_stats | tojson }};
+    const sortedSems = {{ sorted_sems | tojson }};
+    const studentRollNo = {{ student.roll_no }};
+    
+    // Variables for Chart objects
+    let trendChartObj = null;
+    let subjectChartObj = null;
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        initCharts();
+        
+        const semesterSelector = document.getElementById("semesterSelector");
+        if (semesterSelector) {
+            semesterSelector.addEventListener("change", function() {
+                updateSemesterDetails(parseInt(this.value));
+            });
+            // Trigger initial render
+            updateSemesterDetails(parseInt(semesterSelector.value));
+        } else {
+            // Show empty state if no semesters
+            document.getElementById("marksTableContainer").style.display = "none";
+            document.getElementById("noMarksAlert").style.display = "block";
+            document.getElementById("downloadSemPdfBtn").style.display = "none";
+        }
+    });
+    
+    function initCharts() {
+        // 1. Overall Trend Chart (Class 1 to Now)
+        const trendCtx = document.getElementById("trendChart").getContext("2d");
+        const trendLabels = sortedSems.map(sem => `Sem ${sem}`);
+        const trendDataPoints = sortedSems.map(sem => semStats[sem].percentage);
+        
+        // Define beautiful primary theme colors for charts
+        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4f46e5';
+        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0891b2';
+        
+        trendChartObj = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    label: 'Semester Percentage',
+                    data: trendDataPoints,
+                    borderColor: primaryColor,
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: accentColor,
+                    pointBorderColor: '#ffffff',
+                    pointHoverRadius: 7,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: 'rgba(99, 102, 241, 0.08)' },
+                        ticks: { color: '#6b7280', font: { family: 'Outfit' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#6b7280', font: { family: 'Outfit' } }
+                    }
+                }
+            }
+        });
+        
+        // 2. Subject Performance Chart
+        const subjectCtx = document.getElementById("subjectChart").getContext("2d");
+        subjectChartObj = new Chart(subjectCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Marks Obtained',
+                    data: [],
+                    backgroundColor: 'linear-gradient(135deg, ' + primaryColor + ', ' + accentColor + ')',
+                    borderColor: 'transparent',
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    barThickness: 25
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: 'rgba(99, 102, 241, 0.08)' },
+                        ticks: { color: '#6b7280', font: { family: 'Outfit' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#6b7280', font: { family: 'Outfit' } }
+                    }
+                }
+            }
+        });
+        
+        // Custom background plugin or coloring workaround for ChartJS bar gradients
+        const barDataset = subjectChartObj.data.datasets[0];
+        const ctx = subjectCtx;
+        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, primaryColor);
+        gradient.addColorStop(1, accentColor);
+        barDataset.backgroundColor = gradient;
+    }
+    
+    function updateSemesterDetails(sem) {
+        const stats = semStats[sem];
+        const tableBody = document.getElementById("marksTableBody");
+        const tableContainer = document.getElementById("marksTableContainer");
+        const noMarksAlert = document.getElementById("noMarksAlert");
+        const downloadBtn = document.getElementById("downloadSemPdfBtn");
+        
+        if (!stats) {
+            tableContainer.style.display = "none";
+            noMarksAlert.style.display = "block";
+            downloadBtn.style.display = "none";
+            return;
+        }
+        
+        tableContainer.style.display = "block";
+        noMarksAlert.style.display = "none";
+        downloadBtn.style.display = "inline-flex";
+        
+        // Update Table Rows
+        tableBody.innerHTML = "";
+        stats.marks.forEach(item => {
+            const tr = document.createElement("tr");
+            const pass = item.marks >= 50;
+            
+            tr.innerHTML = `
+                <td class="fw-bold text-white">${item.subject_name}</td>
+                <td class="text-center text-white">${item.marks}</td>
+                <td class="text-center">
+                    <span class="badge ${pass ? 'bg-success bg-opacity-20 text-success border border-success border-opacity-20' : 'bg-danger bg-opacity-20 text-danger border border-danger border-opacity-20'} px-3 py-2 rounded-pill">
+                        ${pass ? 'PASS' : 'FAIL'}
+                    </span>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+        
+        // Update Progress Bar
+        const percentage = stats.percentage;
+        document.getElementById("semesterAvgScore").textContent = `${percentage}%`;
+        const progressBar = document.getElementById("semesterAvgProgress");
+        progressBar.style.width = `${percentage}%`;
+        progressBar.setAttribute("aria-valuenow", percentage);
+        
+        // Update Semester PDF Download Button Link
+        downloadBtn.href = `/student/result/pdf/${studentRollNo}?semester=${sem}`;
+        
+        // Update Subject Bar Graph
+        document.getElementById("subjectChartTitle").textContent = `Semester ${sem}`;
+        
+        const labels = stats.marks.map(m => m.subject_name);
+        const data = stats.marks.map(m => m.marks);
+        
+        subjectChartObj.data.labels = labels;
+        subjectChartObj.data.datasets[0].data = data;
+        subjectChartObj.update();
+    }
+</script>
+{% endblock %}
