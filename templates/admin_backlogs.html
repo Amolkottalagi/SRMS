@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Backlog Management | SRMS{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Backlog Management</h1>
+            <p class="text-muted mb-0">View pending re-exam backlogs and clear them with re-attempt scores</p>
+        </div>
+    </div>
+</div>
+
+{% if not backlogs %}
+    <div class="glass-panel p-5 text-center text-muted animate-fade-in">
+        <i class="bi bi-check-circle-fill d-block mb-3 text-success" style="font-size: 3rem;"></i>
+        <h4>No backlogs recorded.</h4>
+        <p class="mb-0">All students are currently passing their subjects.</p>
+    </div>
+{% else %}
+
+<!-- PENDING BACKLOGS -->
+{% set pending = backlogs | selectattr('status', 'equalto', 'pending') | list %}
+{% if pending %}
+<div class="glass-panel p-4 mb-4 animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-white mb-0">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Pending Re-Exams
+        </h4>
+        <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-20 px-3 py-2 rounded-pill">
+            {{ pending|length }} pending
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table-glass">
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Student</th>
+                    <th>Subject</th>
+                    <th class="text-center">Semester</th>
+                    <th class="text-center">Failed Score</th>
+                    <th class="text-center">Clear Backlog</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in pending %}
+                <tr>
+                    <td class="fw-bold text-white">{{ b.roll_no }}</td>
+                    <td class="text-white-50">{{ b.student.name if b.student else 'Unknown' }}</td>
+                    <td>{{ b.subject.subject_name if b.subject else 'Unknown' }}</td>
+                    <td class="text-center">Sem {{ b.semester }}</td>
+                    <td class="text-center text-danger fw-bold">{{ b.original_marks }}</td>
+                    <td class="text-center">
+                        <form action="{{ url_for('clear_backlog', backlog_id=b.id) }}" method="post" class="d-inline-flex align-items-center gap-2" onsubmit="return confirm('Clear backlog for {{ b.student.name if b.student else 'student' }} in {{ b.subject.subject_name if b.subject else 'subject' }}?')">
+                            <input type="number" name="cleared_marks" min="0" max="100" required placeholder="Score" class="form-glass py-1 px-2 text-center" style="width: 80px; font-size: 0.9rem;">
+                            <button type="submit" class="btn btn-sm btn-glow py-1 px-3" style="font-size: 0.85rem;">
+                                <i class="bi bi-check-lg"></i> Clear
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- CLEARED BACKLOGS -->
+{% set cleared = backlogs | selectattr('status', 'equalto', 'cleared') | list %}
+{% if cleared %}
+<div class="glass-panel p-4 animate-fade-in delay-1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-white mb-0">
+            <i class="bi bi-check-circle-fill text-success me-2"></i> Cleared Backlogs
+        </h4>
+        <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-20 px-3 py-2 rounded-pill">
+            {{ cleared|length }} cleared
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table-glass">
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Student</th>
+                    <th>Subject</th>
+                    <th class="text-center">Semester</th>
+                    <th class="text-center">Original Score</th>
+                    <th class="text-center">Cleared Score</th>
+                    <th class="text-center">Cleared Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in cleared %}
+                <tr>
+                    <td class="fw-bold text-white">{{ b.roll_no }}</td>
+                    <td class="text-white-50">{{ b.student.name if b.student else 'Unknown' }}</td>
+                    <td>{{ b.subject.subject_name if b.subject else 'Unknown' }}</td>
+                    <td class="text-center">Sem {{ b.semester }}</td>
+                    <td class="text-center text-danger">{{ b.original_marks }}</td>
+                    <td class="text-center text-success fw-bold">{{ b.cleared_marks }}</td>
+                    <td class="text-center text-white-50">{{ b.cleared_date.strftime('%Y-%m-%d') if b.cleared_date else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

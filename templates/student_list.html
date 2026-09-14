@@ -85,7 +85,12 @@
                             {% for s in group_students %}
                                 <tr class="student-row">
                                     <td class="fw-bold text-white">{{ s.roll_no }}</td>
-                                    <td class="student-name text-white">{{ s.name }}</td>
+                                    <td class="student-name text-white">
+                                        {{ s.name }}
+                                        {% if s.is_at_risk %}
+                                            <i class="bi bi-exclamation-triangle-fill text-danger ms-2" title="{{ s.at_risk_reason }}" style="cursor: help;"></i>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ s.gender }}</td>
                                     <td>{{ s.dob }}</td>
                                     <td>{{ s.email }}</td>

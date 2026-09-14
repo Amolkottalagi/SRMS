@@ -63,28 +63,34 @@
             <h5 class="text-white mb-4"><i class="bi bi-award-fill text-warning me-2"></i> Cumulative Performance Summary</h5>
             
             <div class="row g-3">
-                <div class="col-sm-6 col-md-3">
-                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                <div class="col-sm-4 col-md">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); min-height: 85px;">
                         <small class="text-muted d-block mb-1">Cumulative Pct</small>
-                        <strong class="text-accent fs-3">{{ "%.2f"|format(overall_percentage) }}%</strong>
+                        <strong class="text-accent fs-4">{{ "%.2f"|format(overall_percentage) }}%</strong>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
-                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                <div class="col-sm-4 col-md">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); min-height: 85px;">
+                        <small class="text-muted d-block mb-1">Cumulative CGPA</small>
+                        <strong class="text-warning fs-4">{{ "%.2f"|format(cgpa) }}</strong>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); min-height: 85px;">
                         <small class="text-muted d-block mb-1">Overall Grade</small>
-                        <strong class="text-white fs-3">{{ overall_grade }}</strong>
+                        <strong class="text-white fs-4">{{ overall_grade }}</strong>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
-                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                <div class="col-sm-6 col-md">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); min-height: 85px;">
                         <small class="text-muted d-block mb-1">Overall Status</small>
-                        <strong class="{% if overall_status == 'PASS' %}text-success{% else %}text-danger{% endif %} fs-3">{{ overall_status }}</strong>
+                        <strong class="{% if overall_status == 'PASS' %}text-success{% else %}text-danger{% endif %} fs-4">{{ overall_status }}</strong>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
-                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                <div class="col-sm-6 col-md">
+                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); min-height: 85px;">
                         <small class="text-muted d-block mb-1">Terms Completed</small>
-                        <strong class="text-white fs-3">{{ sorted_sems|length }}</strong>
+                        <strong class="text-white fs-4">{{ sorted_sems|length }}</strong>
                     </div>
                 </div>
             </div>
@@ -105,9 +111,9 @@
 <!-- PERFORMANCE GRAPHS -->
 <div class="row g-4 mb-4">
     <!-- Trend Graph -->
-    <div class="col-lg-6">
+    <div class="col-lg-4">
         <div class="glass-panel p-4">
-            <h5 class="text-white mb-3"><i class="bi bi-graph-up text-primary me-2"></i> Semester-wise Progress (Class 1 to Now)</h5>
+            <h5 class="text-white mb-3"><i class="bi bi-graph-up text-primary me-2"></i> Progress Trend</h5>
             <div class="chart-container">
                 <canvas id="trendChart"></canvas>
             </div>
@@ -115,11 +121,21 @@
     </div>
     
     <!-- Subject Bar Graph -->
-    <div class="col-lg-6">
+    <div class="col-lg-4">
         <div class="glass-panel p-4">
-            <h5 class="text-white mb-3"><i class="bi bi-bar-chart-fill text-accent me-2"></i> Subject Performance — <span id="subjectChartTitle">Semesters</span></h5>
+            <h5 class="text-white mb-3"><i class="bi bi-bar-chart-fill text-accent me-2"></i> Subject Marks — <span id="subjectChartTitle">Semesters</span></h5>
             <div class="chart-container">
                 <canvas id="subjectChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subject Radar Graph -->
+    <div class="col-lg-4">
+        <div class="glass-panel p-4">
+            <h5 class="text-white mb-3"><i class="bi bi-compass-fill text-warning me-2"></i> <span id="radarChartTitle">Radar Strength</span></h5>
+            <div class="chart-container">
+                <canvas id="radarChart"></canvas>
             </div>
         </div>
     </div>
@@ -172,9 +188,15 @@
                 
                 <!-- Performance Bar -->
                 <div class="mt-4">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Semester Average Score</span>
-                        <span id="semesterAvgScore" class="text-white fw-bold">0%</span>
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-2">
+                        <div class="d-flex gap-3 flex-wrap">
+                            <span class="text-muted">Average: <span id="semesterAvgScore" class="text-white fw-bold">0%</span></span>
+                            <span class="text-muted">|</span>
+                            <span class="text-muted">SGPA: <span id="semesterSGPA" class="text-warning fw-bold">0.00</span></span>
+                        </div>
+                        <div>
+                            <span class="text-muted">Rank: <span id="semesterRankPercentile" class="text-accent fw-bold">N/A</span></span>
+                        </div>
                     </div>
                     <div class="progress" style="height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; border: 1px solid var(--border-color);">
                         <div id="semesterAvgProgress" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 5px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
@@ -185,15 +207,57 @@
     </div>
 </div>
 
+<!-- STUDENT BACKLOGS -->
+{% if backlogs %}
+<div class="row g-4 mt-4 mb-4">
+    <div class="col-12">
+        <div class="glass-panel p-4">
+            <h4 class="text-white mb-3"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Re-Attempt / Backlog Records</h4>
+            <div class="table-responsive">
+                <table class="table-glass">
+                    <thead>
+                        <tr>
+                            <th>Semester</th>
+                            <th>Subject</th>
+                            <th class="text-center">Failed Score</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Cleared Score</th>
+                            <th class="text-center">Cleared Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in backlogs %}
+                        <tr>
+                            <td class="fw-bold text-white">Semester {{ b.semester }}</td>
+                            <td>{{ b.subject.subject_name }}</td>
+                            <td class="text-center text-danger fw-bold">{{ b.original_marks }}</td>
+                            <td class="text-center">
+                                {% if b.status == 'pending' %}
+                                    <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-20 px-3 py-1 rounded-pill">PENDING RE-EXAM</span>
+                                {% else %}
+                                    <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-20 px-3 py-1 rounded-pill">CLEARED</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center fw-bold text-success">{{ b.cleared_marks if b.cleared_marks is not none else '-' }}</td>
+                            <td class="text-center text-white-50">{{ b.cleared_date.strftime('%Y-%m-%d') if b.cleared_date else '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <script>
-    // Safe dynamic data injection from Flask
     const semStats = {{ sem_stats | tojson }};
     const sortedSems = {{ sorted_sems | tojson }};
     const studentRollNo = {{ student.roll_no }};
     
-    // Variables for Chart objects
     let trendChartObj = null;
     let subjectChartObj = null;
+    let radarChartObj = null;
     
     document.addEventListener("DOMContentLoaded", function() {
         initCharts();
@@ -203,25 +267,28 @@
             semesterSelector.addEventListener("change", function() {
                 updateSemesterDetails(parseInt(this.value));
             });
-            // Trigger initial render
             updateSemesterDetails(parseInt(semesterSelector.value));
         } else {
-            // Show empty state if no semesters
             document.getElementById("marksTableContainer").style.display = "none";
             document.getElementById("noMarksAlert").style.display = "block";
             document.getElementById("downloadSemPdfBtn").style.display = "none";
         }
     });
     
+    function getOrdinal(n) {
+        let s = ["th", "st", "nd", "rd"],
+            v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+    
     function initCharts() {
-        // 1. Overall Trend Chart (Class 1 to Now)
+        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4f46e5';
+        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0891b2';
+        
+        // 1. Overall Trend Chart
         const trendCtx = document.getElementById("trendChart").getContext("2d");
         const trendLabels = sortedSems.map(sem => `Sem ${sem}`);
         const trendDataPoints = sortedSems.map(sem => semStats[sem].percentage);
-        
-        // Define beautiful primary theme colors for charts
-        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4f46e5';
-        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0891b2';
         
         trendChartObj = new Chart(trendCtx, {
             type: 'line',
@@ -244,9 +311,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     y: {
                         min: 0,
@@ -269,9 +334,8 @@
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Marks Obtained',
+                    label: 'Marks',
                     data: [],
-                    backgroundColor: 'linear-gradient(135deg, ' + primaryColor + ', ' + accentColor + ')',
                     borderColor: 'transparent',
                     borderWidth: 0,
                     borderRadius: 6,
@@ -281,9 +345,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     y: {
                         min: 0,
@@ -299,13 +361,55 @@
             }
         });
         
-        // Custom background plugin or coloring workaround for ChartJS bar gradients
         const barDataset = subjectChartObj.data.datasets[0];
-        const ctx = subjectCtx;
-        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, primaryColor);
-        gradient.addColorStop(1, accentColor);
-        barDataset.backgroundColor = gradient;
+        const barGradient = subjectCtx.createLinearGradient(0, 0, 0, 200);
+        barGradient.addColorStop(0, primaryColor);
+        barGradient.addColorStop(1, accentColor);
+        barDataset.backgroundColor = barGradient;
+
+        // 3. Subject Radar Chart (Strength/Weakness for the latest semester)
+        const radarCtx = document.getElementById("radarChart").getContext("2d");
+        radarChartObj = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Score',
+                    data: [],
+                    backgroundColor: 'rgba(8, 145, 178, 0.2)',
+                    borderColor: accentColor,
+                    borderWidth: 2,
+                    pointBackgroundColor: primaryColor,
+                    pointBorderColor: '#ffffff',
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 100,
+                        ticks: { display: false },
+                        grid: { color: 'rgba(99, 102, 241, 0.1)' },
+                        angleLines: { color: 'rgba(99, 102, 241, 0.1)' },
+                        pointLabels: { color: '#6b7280', font: { family: 'Outfit', size: 10 } }
+                    }
+                }
+            }
+        });
+
+        // Initialize Radar Chart with latest semester data
+        if (sortedSems.length > 0) {
+            const latestSem = sortedSems[sortedSems.length - 1];
+            const latestStats = semStats[latestSem];
+            document.getElementById("radarChartTitle").textContent = `Sem ${latestSem} Strength/Weakness`;
+            radarChartObj.data.labels = latestStats.marks.map(m => m.subject_name);
+            radarChartObj.data.datasets[0].data = latestStats.marks.map(m => m.marks);
+            radarChartObj.update();
+        }
     }
     
     function updateSemesterDetails(sem) {
@@ -326,7 +430,6 @@
         noMarksAlert.style.display = "none";
         downloadBtn.style.display = "inline-flex";
         
-        // Update Table Rows
         tableBody.innerHTML = "";
         stats.marks.forEach(item => {
             const tr = document.createElement("tr");
@@ -344,17 +447,20 @@
             tableBody.appendChild(tr);
         });
         
-        // Update Progress Bar
+        // Progress average
         const percentage = stats.percentage;
         document.getElementById("semesterAvgScore").textContent = `${percentage}%`;
         const progressBar = document.getElementById("semesterAvgProgress");
         progressBar.style.width = `${percentage}%`;
         progressBar.setAttribute("aria-valuenow", percentage);
         
-        // Update Semester PDF Download Button Link
-        downloadBtn.href = `/student/result/pdf/${studentRollNo}?semester=${sem}`;
+        // SGPA and Class Standing Rank
+        document.getElementById("semesterSGPA").textContent = parseFloat(stats.sgpa).toFixed(2);
         
-        // Update Subject Bar Graph
+        const rankText = stats.rank ? `Rank ${stats.rank} of ${stats.total_students} — ${getOrdinal(Math.round(stats.percentile))} percentile` : 'N/A';
+        document.getElementById("semesterRankPercentile").textContent = rankText;
+
+        downloadBtn.href = `/student/result/pdf/${studentRollNo}?semester=${sem}`;
         document.getElementById("subjectChartTitle").textContent = `Semester ${sem}`;
         
         const labels = stats.marks.map(m => m.subject_name);

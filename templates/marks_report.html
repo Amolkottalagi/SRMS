@@ -2,6 +2,11 @@
 
 {% block title %}Marks Report | SRMS{% endblock %}
 
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row g-4 mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
@@ -35,6 +40,66 @@
     <div class="glass-panel p-4 animate-fade-in">
         <h3 class="text-white mb-4"><i class="bi bi-bar-chart-line-fill text-accent me-2"></i> Report Card — Semester {{ semester }}</h3>
         
+        {% if grade_distribution %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="p-4" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <h5 class="text-white mb-3"><i class="bi bi-bar-chart-steps text-warning me-2"></i> Grade Distribution by Subject</h5>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="gradeDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const gradeData = {{ grade_distribution | tojson }};
+                const subjects = Object.keys(gradeData);
+                const datasets = [
+                    {
+                        label: 'Grade A',
+                        data: subjects.map(sub => gradeData[sub]['A'] || 0),
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)', // success
+                    },
+                    {
+                        label: 'Grade B',
+                        data: subjects.map(sub => gradeData[sub]['B'] || 0),
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)', // primary
+                    },
+                    {
+                        label: 'Grade C',
+                        data: subjects.map(sub => gradeData[sub]['C'] || 0),
+                        backgroundColor: 'rgba(245, 158, 11, 0.8)', // warning
+                    },
+                    {
+                        label: 'Grade F',
+                        data: subjects.map(sub => gradeData[sub]['F'] || 0),
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)', // danger
+                    }
+                ];
+
+                new Chart(document.getElementById('gradeDistributionChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: subjects,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { ticks: { color: '#9ca3af', font: { family: 'Outfit' } }, grid: { display: false } },
+                            y: { ticks: { color: '#9ca3af', font: { family: 'Outfit' }, stepSize: 1 }, grid: { color: 'rgba(99, 102, 241, 0.08)' } }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#9ca3af', font: { family: 'Outfit' } } }
+                        }
+                    }
+                });
+            });
+        </script>
+        {% endif %}
+        
         {% if not report %}
             <div class="text-center py-5 text-muted">
                 <i class="bi bi-journal-x d-block mb-3" style="font-size: 2.5rem;"></i>
@@ -63,7 +128,12 @@
                             {% set total_marks = namespace(val=0) %}
                             <tr>
                                 <td class="fw-bold text-white">{{ row.roll_no }}</td>
-                                <td class="text-start text-white-50">{{ row.name }}</td>
+                                <td class="text-start text-white-50">
+                                    {{ row.name }}
+                                    {% if row.is_at_risk %}
+                                        <i class="bi bi-exclamation-triangle-fill text-danger ms-2" title="{{ row.at_risk_reason }}" style="cursor: help;"></i>
+                                    {% endif %}
+                                </td>
                                 <td><span class="badge bg-primary bg-opacity-20 text-primary">{{ row.course }}</span></td>
                                 <td>Sem {{ row.semester }}</td>
                                 

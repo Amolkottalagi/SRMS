@@ -12,7 +12,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% if session.get('theme') == 'dark' %}dark-theme{% endif %}">
+
+    {% if not session.get('role') %}
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        <a href="{{ url_for('toggle_theme') }}" class="btn btn-secondary-custom rounded-circle p-2" title="Toggle Theme" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md);">
+            <i class="bi {% if session.get('theme') == 'dark' %}bi-sun-fill text-warning{% else %}bi-moon-fill text-primary{% endif %}"></i>
+        </a>
+    </div>
+    {% endif %}
 
     {% if session.get('role') %}
     <!-- SIDEBAR FOR LOGGED IN USERS -->
@@ -53,6 +61,26 @@
                             <i class="bi bi-file-earmark-bar-graph-fill text-danger"></i> Reports
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-3 p-3 rounded glass-panel {% if '/admin/backlogs' in request.path %}bg-primary{% endif %}" href="{{ url_for('view_backlogs') }}">
+                            <i class="bi bi-exclamation-diamond-fill text-warning"></i> Backlogs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-3 p-3 rounded glass-panel {% if '/admin/audit-log' in request.path %}bg-primary{% endif %}" href="{{ url_for('view_audit_logs') }}">
+                            <i class="bi bi-clock-history text-info"></i> Audit Log
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-3 p-3 rounded glass-panel {% if '/admin/grading-scheme' in request.path %}bg-primary{% endif %}" href="{{ url_for('manage_grading_scheme') }}">
+                            <i class="bi bi-sliders2 text-accent"></i> Grading
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-3 p-3 rounded glass-panel {% if '/admin/analytics' in request.path %}bg-primary{% endif %}" href="{{ url_for('admin_analytics') }}">
+                            <i class="bi bi-graph-up text-success"></i> Analytics
+                        </a>
+                    </li>
                 {% elif session.get('role') == 'teacher' %}
                     <li class="nav-item">
                         <a class="nav-link text-white d-flex align-items-center gap-3 p-3 rounded glass-panel" href="{{ url_for('teacher_dashboard') }}">
@@ -66,6 +94,18 @@
                         </a>
                     </li>
                 {% endif %}
+                <!-- NOTIFICATIONS BELL ITEM (all roles) -->
+                <li class="nav-item dropup position-relative">
+                    <a class="nav-link text-white d-flex align-items-center justify-content-between p-3 rounded glass-panel" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="d-flex align-items-center gap-3">
+                            <i class="bi bi-bell-fill text-warning"></i> Notifications
+                        </span>
+                        <span class="badge bg-danger rounded-pill" id="notificationBadge" style="display: none; font-size: 0.75rem;">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark p-2 text-muted" aria-labelledby="notificationDropdown" style="width: 280px; max-height: 350px; overflow-y: auto;" id="notificationList">
+                        <li class="p-2 text-center"><small class="text-white-50">Loading notifications...</small></li>
+                    </ul>
+                </li>
             </ul>
         </div>
         
@@ -76,9 +116,14 @@
                     <p class="mb-0 text-white fw-bold">{{ session.get('username') }}</p>
                     <small class="text-muted text-capitalize">{{ session.get('role') }}</small>
                 </div>
-                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-glow btn-accent" title="Logout">
-                    <i class="bi bi-box-arrow-right"></i>
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('toggle_theme') }}" class="btn btn-sm btn-secondary-custom" title="Toggle Theme" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                        <i class="bi {% if session.get('theme') == 'dark' %}bi-sun-fill text-warning{% else %}bi-moon-fill text-primary{% endif %}"></i>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-glow btn-accent" title="Logout" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0;">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -106,5 +151,59 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            {% if session.get('role') %}
+            const notifDropdown = document.getElementById("notificationDropdown");
+            const notifBadge = document.getElementById("notificationBadge");
+            const notifList = document.getElementById("notificationList");
+            
+            function fetchNotifications() {
+                fetch("/api/notifications")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.unread_count > 0) {
+                            notifBadge.textContent = data.unread_count;
+                            notifBadge.style.display = "inline-block";
+                        } else {
+                            notifBadge.style.display = "none";
+                        }
+                        
+                        notifList.innerHTML = "";
+                        if (!data.notifications || data.notifications.length === 0) {
+                            notifList.innerHTML = '<li class="p-2 text-center"><small class="text-white-50">No notifications</small></li>';
+                        } else {
+                            data.notifications.forEach(n => {
+                                const li = document.createElement("li");
+                                li.className = `notification-item ${n.is_read ? '' : 'unread'}`;
+                                li.innerHTML = `
+                                    <div class="d-flex flex-column">
+                                        <span class="text-white" style="font-size: 0.85rem;">${n.message}</span>
+                                        <small class="text-muted" style="font-size: 0.7rem; margin-top: 4px;">${n.created_at}</small>
+                                    </div>
+                                `;
+                                notifList.appendChild(li);
+                            });
+                        }
+                    })
+                    .catch(err => console.error("Error fetching notifications:", err));
+            }
+            
+            if (notifDropdown) {
+                notifDropdown.addEventListener("click", function() {
+                    fetch("/api/notifications/mark-read", { method: "POST" })
+                        .then(() => {
+                            notifBadge.style.display = "none";
+                            setTimeout(fetchNotifications, 500);
+                        });
+                });
+            }
+            
+            fetchNotifications();
+            setInterval(fetchNotifications, 10000);
+            {% endif %}
+        });
+    </script>
 </body>
 </html>

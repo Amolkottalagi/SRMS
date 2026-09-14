@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard | SRMS{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .chart-container-lg {
+        position: relative;
+        height: 340px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Academic Analytics</h1>
+            <p class="text-muted mb-0">Aggregated performance metrics across courses and semesters</p>
+        </div>
+        <a href="{{ url_for('export_analytics_csv') }}" class="btn-glow btn-accent">
+            <i class="bi bi-download"></i> Export CSV
+        </a>
+    </div>
+</div>
+
+{% if not summary %}
+    <div class="glass-panel p-5 text-center text-muted animate-fade-in">
+        <i class="bi bi-bar-chart-line d-block mb-3" style="font-size: 3rem;"></i>
+        <h4>No analytics data available.</h4>
+        <p class="mb-0">Start recording student marks to see performance analytics here.</p>
+    </div>
+{% else %}
+
+<!-- CHARTS ROW -->
+<div class="row g-4 mb-4 animate-fade-in">
+    <!-- Pass Percentage Chart -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4">
+            <h5 class="text-white mb-3"><i class="bi bi-graph-up-arrow text-success me-2"></i> Pass Percentage by Course & Semester</h5>
+            <div class="chart-container-lg">
+                <canvas id="passPercentageChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Average Marks Chart -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4">
+            <h5 class="text-white mb-3"><i class="bi bi-bar-chart-fill text-primary me-2"></i> Average Marks by Course & Semester</h5>
+            <div class="chart-container-lg">
+                <canvas id="avgMarksChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DATA TABLE -->
+<div class="glass-panel p-4 animate-fade-in delay-1">
+    <h5 class="text-white mb-3"><i class="bi bi-table text-accent me-2"></i> Detailed Analytics Summary</h5>
+    <div class="table-responsive">
+        <table class="table-glass text-center">
+            <thead>
+                <tr>
+                    <th class="text-start">Course</th>
+                    <th>Semester</th>
+                    <th>Total Students</th>
+                    <th>Average Marks</th>
+                    <th>Pass Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in summary %}
+                <tr>
+                    <td class="text-start fw-bold text-white">
+                        <span class="badge bg-primary bg-opacity-20 text-primary border border-primary border-opacity-20 px-3 py-1 rounded-pill">{{ row.course }}</span>
+                    </td>
+                    <td>Sem {{ row.semester }}</td>
+                    <td class="fw-bold text-white">{{ row.total_students }}</td>
+                    <td>
+                        <span class="{% if row.avg_marks >= 60 %}text-success{% elif row.avg_marks >= 50 %}text-warning{% else %}text-danger{% endif %} fw-bold">
+                            {{ row.avg_marks }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <div class="progress" style="width: 80px; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="progress-bar" style="width: {{ row.pass_percentage }}%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px;"></div>
+                            </div>
+                            <span class="fw-bold text-accent">{{ row.pass_percentage }}%</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const summaryData = {{ summary | tojson }};
+    
+    // Group data by course
+    const courses = [...new Set(summaryData.map(d => d.course))];
+    const colorPalette = [
+        { border: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)' },
+        { border: '#0891b2', bg: 'rgba(8, 145, 178, 0.15)' },
+        { border: '#a855f7', bg: 'rgba(168, 85, 247, 0.15)' },
+        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.15)' },
+        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },
+    ];
+    
+    // All unique semesters sorted
+    const allSemesters = [...new Set(summaryData.map(d => d.semester))].sort((a, b) => a - b);
+    const semLabels = allSemesters.map(s => `Sem ${s}`);
+    
+    // Build datasets for each chart
+    function buildDatasets(valueKey) {
+        return courses.map((course, i) => {
+            const ci = i % colorPalette.length;
+            const dataPoints = allSemesters.map(sem => {
+                const entry = summaryData.find(d => d.course === course && d.semester === sem);
+                return entry ? entry[valueKey] : null;
+            });
+            return {
+                label: course,
+                data: dataPoints,
+                borderColor: colorPalette[ci].border,
+                backgroundColor: colorPalette[ci].bg,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: colorPalette[ci].border,
+                pointBorderColor: '#ffffff',
+                spanGaps: true
+            };
+        });
+    }
+    
+    const chartOptions = (yLabel, max) => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: '#9ca3af', font: { family: 'Outfit', weight: '500' }, padding: 16 }
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: max,
+                grid: { color: 'rgba(99, 102, 241, 0.08)' },
+                ticks: { color: '#6b7280', font: { family: 'Outfit' } },
+                title: { display: true, text: yLabel, color: '#9ca3af', font: { family: 'Outfit' } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#6b7280', font: { family: 'Outfit' } }
+            }
+        }
+    });
+    
+    // Pass Percentage Chart
+    new Chart(document.getElementById('passPercentageChart').getContext('2d'), {
+        type: 'line',
+        data: { labels: semLabels, datasets: buildDatasets('pass_percentage') },
+        options: chartOptions('Pass %', 100)
+    });
+    
+    // Average Marks Chart (bar)
+    const avgDatasets = courses.map((course, i) => {
+        const ci = i % colorPalette.length;
+        const dataPoints = allSemesters.map(sem => {
+            const entry = summaryData.find(d => d.course === course && d.semester === sem);
+            return entry ? entry.avg_marks : null;
+        });
+        return {
+            label: course,
+            data: dataPoints,
+            backgroundColor: colorPalette[ci].border,
+            borderRadius: 6,
+            barThickness: 20
+        };
+    });
+    
+    new Chart(document.getElementById('avgMarksChart').getContext('2d'), {
+        type: 'bar',
+        data: { labels: semLabels, datasets: avgDatasets },
+        options: chartOptions('Average Marks', 100)
+    });
+</script>
+
+{% endif %}
+{% endblock %}

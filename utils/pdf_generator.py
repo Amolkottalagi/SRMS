@@ -2,12 +2,16 @@ import io
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-def generate_pdf(student_info, marks_list):
+def generate_pdf(student_info, marks_list, qr_image_buffer=None):
     """
     Generates a PDF scorecard for a student and returns it as a bytes buffer.
+    Optionally embeds a QR code image for verification if qr_image_buffer is provided.
+    Displays SGPA and CGPA if present in student_info.
     """
     buffer = io.BytesIO()
     
@@ -192,15 +196,59 @@ def generate_pdf(student_info, marks_list):
         [Paragraph("Status:", label_style), Paragraph(status, status_style)],
     ]
     
+    # Add SGPA and CGPA rows if available in student_info
+    sgpa = student_info.get('sgpa')
+    cgpa = student_info.get('cgpa')
+    if sgpa is not None:
+        summary_data.append([Paragraph("SGPA:", label_style), Paragraph(f"{sgpa:.2f}", value_style)])
+    if cgpa is not None:
+        summary_data.append([Paragraph("CGPA:", label_style), Paragraph(f"{cgpa:.2f}", value_style)])
+    
     summary_table = Table(summary_data, colWidths=[120, 400])
     summary_table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ]))
     story.append(summary_table)
-    story.append(Spacer(1, 40))
+    story.append(Spacer(1, 30))
     
-    # 6. Footer (Date and Signatures)
+    # 6. QR Code Verification Block (if provided)
+    if qr_image_buffer:
+        try:
+            qr_image_buffer.seek(0)
+            qr_reader = ImageReader(qr_image_buffer)
+            qr_img = Image(qr_reader, width=25*mm, height=25*mm)
+
+            verify_label_style = ParagraphStyle(
+                'VerifyLabel',
+                parent=styles['Normal'],
+                fontName='Helvetica',
+                fontSize=8,
+                leading=10,
+                textColor=colors.HexColor('#888888'),
+                alignment=0
+            )
+
+            qr_table_data = [[
+                qr_img,
+                Paragraph(
+                    "Scan QR code to verify<br/>the authenticity of this<br/>scorecard online.",
+                    verify_label_style
+                )
+            ]]
+
+            qr_table = Table(qr_table_data, colWidths=[30*mm, 80*mm])
+            qr_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (1, 0), (1, 0), 10),
+            ]))
+            story.append(qr_table)
+            story.append(Spacer(1, 15))
+        except Exception as e:
+            # If QR embedding fails, continue without it
+            print(f"Warning: Could not embed QR code in PDF: {e}")
+    
+    # 7. Footer (Date and Signatures)
     current_date = datetime.now().strftime("%d-%m-%Y")
     
     footer_data = [

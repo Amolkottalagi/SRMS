@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log | SRMS{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Marks Audit Log</h1>
+            <p class="text-muted mb-0">Complete history of all marks created and modified — searchable and filterable</p>
+        </div>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="glass-panel p-4 mb-4 animate-fade-in">
+    <form action="{{ url_for('view_audit_logs') }}" method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label text-white-50 fw-bold">Student Roll No</label>
+            <input type="number" name="roll_no" class="form-select form-glass" placeholder="e.g. 5001" value="{{ roll_no or '' }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-white-50 fw-bold">Subject</label>
+            <select name="subject_id" class="form-select form-glass">
+                <option value="">All Subjects</option>
+                {% for sub in subjects %}
+                    <option value="{{ sub.id }}" {% if subject_id and subject_id|string == sub.id|string %}selected{% endif %}>{{ sub.subject_name }} ({{ sub.course }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-white-50 fw-bold">From Date</label>
+            <input type="date" name="start_date" class="form-select form-glass" value="{{ start_date or '' }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-white-50 fw-bold">To Date</label>
+            <input type="date" name="end_date" class="form-select form-glass" value="{{ end_date or '' }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn-glow w-100 justify-content-center">
+                <i class="bi bi-funnel-fill"></i> Filter
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- LOG TABLE -->
+<div class="glass-panel p-4 animate-fade-in delay-1">
+    {% if not logs %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-journal-x d-block mb-3" style="font-size: 2.5rem;"></i>
+            <h5>No audit log entries found.</h5>
+            <p class="mb-0">Adjust your filters or check back after marks have been recorded.</p>
+        </div>
+    {% else %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-white mb-0">
+                <i class="bi bi-clock-history text-primary me-2"></i> {{ logs|length }} entries found
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table-glass text-center">
+                <thead>
+                    <tr>
+                        <th class="text-start">Timestamp</th>
+                        <th>Actor</th>
+                        <th>Action</th>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Old Value</th>
+                        <th>New Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="text-start text-white-50" style="font-size: 0.85rem;">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            <span class="badge {% if log.actor_role == 'admin' %}bg-primary bg-opacity-20 text-primary{% else %}bg-warning bg-opacity-20 text-warning{% endif %} px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                {{ log.actor_role }}
+                            </span>
+                            <br><small class="text-white-50">{{ log.actor_id }}</small>
+                        </td>
+                        <td>
+                            <span class="badge {% if log.action == 'create' %}bg-success bg-opacity-20 text-success border border-success border-opacity-20{% else %}bg-accent bg-opacity-20 text-accent{% endif %} px-3 py-1 rounded-pill">
+                                {{ log.action|upper }}
+                            </span>
+                        </td>
+                        <td class="fw-bold text-white">{{ log.target_roll_no }}</td>
+                        <td class="text-white-50">{{ log.subject.subject_name if log.subject else log.subject_id }}</td>
+                        <td class="text-danger">{{ log.old_value if log.old_value is not none else '—' }}</td>
+                        <td class="text-success fw-bold">{{ log.new_value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

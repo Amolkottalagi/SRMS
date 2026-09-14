@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Grading Scheme | SRMS{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="text-white mb-1">Grading Scheme Configuration</h1>
+            <p class="text-muted mb-0">Define grade letters, percentage ranges, and grade points used across the portal</p>
+        </div>
+    </div>
+</div>
+
+<div class="glass-panel p-4 animate-fade-in">
+    <form action="{{ url_for('manage_grading_scheme') }}" method="post" id="gradingForm">
+        <div class="table-responsive">
+            <table class="table-glass" id="gradingTable">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Grade Letter</th>
+                        <th style="width: 25%;">Min Percentage</th>
+                        <th style="width: 25%;">Max Percentage</th>
+                        <th style="width: 25%;">Grade Point</th>
+                        <th class="text-center" style="width: 10%;">Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="gradingTableBody">
+                    {% for gs in schemes %}
+                    <tr class="grading-row">
+                        <td>
+                            <input type="hidden" name="id" value="{{ gs.id }}">
+                            <input type="text" name="grade_letter" value="{{ gs.grade_letter }}" class="form-glass w-100 text-center fw-bold" style="font-size: 1.1rem;" required>
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" name="min_pct" value="{{ gs.min_pct }}" class="form-glass w-100 text-center" required>
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" name="max_pct" value="{{ gs.max_pct }}" class="form-glass w-100 text-center" required>
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" name="grade_point" value="{{ gs.grade_point }}" class="form-glass w-100 text-center" required>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-secondary-custom px-3 py-2" onclick="this.closest('tr').remove()" title="Remove Row" style="border-radius: 50%;">
+                                <i class="bi bi-trash-fill text-danger"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <button type="button" id="addRowBtn" class="btn btn-secondary-custom d-inline-flex align-items-center gap-2 px-4 py-2" style="border-radius: 30px;">
+                <i class="bi bi-plus-circle-fill text-primary"></i> Add Grade Band
+            </button>
+            <button type="submit" class="btn-glow">
+                <i class="bi bi-save-fill"></i> Save Grading Scheme
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="glass-panel p-4 mt-4 animate-fade-in delay-1">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+            <i class="bi bi-info-circle-fill" style="font-size: 1.3rem;"></i>
+        </div>
+        <div>
+            <h6 class="text-white mb-1">How Grading Works</h6>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                When marks are evaluated, the system checks the student's percentage against these ranges (from highest to lowest).
+                Grade points are used for computing SGPA and CGPA. If no scheme matches, fallback thresholds (A≥75, B≥60, C≥50, F&lt;50) are used.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('addRowBtn').addEventListener('click', function() {
+        const tbody = document.getElementById('gradingTableBody');
+        const newRow = document.createElement('tr');
+        newRow.className = 'grading-row';
+        newRow.innerHTML = `
+            <td>
+                <input type="hidden" name="id" value="">
+                <input type="text" name="grade_letter" class="form-glass w-100 text-center fw-bold" style="font-size: 1.1rem;" required placeholder="e.g. A+">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="min_pct" class="form-glass w-100 text-center" required placeholder="0.00">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="max_pct" class="form-glass w-100 text-center" required placeholder="100.00">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="grade_point" class="form-glass w-100 text-center" required placeholder="10.0">
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-secondary-custom px-3 py-2" onclick="this.closest('tr').remove()" title="Remove Row" style="border-radius: 50%;">
+                    <i class="bi bi-trash-fill text-danger"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+    });
+</script>
+{% endblock %}
