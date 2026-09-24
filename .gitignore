@@ -2,6 +2,8 @@
 __pycache__/
 *.pyc
 *.db
+*.sqlite
+*.log
 srms_python.zip
 .idea/
 .vscode/

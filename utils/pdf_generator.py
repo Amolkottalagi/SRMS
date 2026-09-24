@@ -216,8 +216,7 @@ def generate_pdf(student_info, marks_list, qr_image_buffer=None):
     if qr_image_buffer:
         try:
             qr_image_buffer.seek(0)
-            qr_reader = ImageReader(qr_image_buffer)
-            qr_img = Image(qr_reader, width=25*mm, height=25*mm)
+            qr_img = Image(qr_image_buffer, width=25*mm, height=25*mm)
 
             verify_label_style = ParagraphStyle(
                 'VerifyLabel',

@@ -3,10 +3,9 @@ import pymysql
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'srms_super_secret_key_12345')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     MYSQL_USER = os.environ.get('MYSQL_USER', 'root')
-    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'password')
+    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', '')
     MYSQL_HOST = os.environ.get('MYSQL_HOST', 'localhost')
     MYSQL_PORT = int(os.environ.get('MYSQL_PORT', 3306))
     MYSQL_DB = os.environ.get('MYSQL_DB', 'srms')
@@ -33,6 +32,6 @@ class Config:
         pass
 
     if use_sqlite:
-        SQLALCHEMY_DATABASE_URI = "sqlite:///srms.db"
+        DATABASE_URI = "sqlite:///srms.db"
     else:
-        SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
+        DATABASE_URI = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"

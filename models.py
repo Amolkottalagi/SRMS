@@ -1,26 +1,30 @@
-from database import db
+from sqlalchemy import Column, Integer, String, Float, Boolean, Date, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
+from database import Base
 from datetime import datetime
 
-class Admin(db.Model):
+
+class Admin(Base):
     __tablename__ = 'admin'
-    username = db.Column(db.String(50), primary_key=True)
-    password = db.Column(db.String(255), nullable=False)
+    username = Column(String(50), primary_key=True)
+    password = Column(String(255), nullable=False)
 
     def to_dict(self):
         return {
             'username': self.username
         }
 
-class Student(db.Model):
+
+class Student(Base):
     __tablename__ = 'student'
-    roll_no = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
-    dob = db.Column(db.Date, nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    contact_no = db.Column(db.String(15), nullable=False)
-    course = db.Column(db.String(50), nullable=False)
-    semester = db.Column(db.Integer, nullable=False)
+    roll_no = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    gender = Column(String(10), nullable=False)
+    dob = Column(Date, nullable=False)
+    email = Column(String(100), nullable=False)
+    contact_no = Column(String(15), nullable=False)
+    course = Column(String(50), nullable=False)
+    semester = Column(Integer, nullable=False)
 
     def to_dict(self):
         return {
@@ -34,13 +38,14 @@ class Student(db.Model):
             'semester': self.semester
         }
 
-class Teacher(db.Model):
+
+class Teacher(Base):
     __tablename__ = 'teacher'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    teacher_id = db.Column(db.String(50), unique=True, nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    course = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    teacher_id = Column(String(50), unique=True, nullable=False)
+    name = Column(String(100), nullable=False)
+    course = Column(String(50), nullable=False)
+    password = Column(String(255), nullable=False)
 
     def to_dict(self):
         return {
@@ -50,13 +55,14 @@ class Teacher(db.Model):
             'course': self.course
         }
 
-class Subject(db.Model):
+
+class Subject(Base):
     __tablename__ = 'subjects'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    subject_name = db.Column(db.String(100), nullable=False)
-    course = db.Column(db.String(50), nullable=False)
-    semester = db.Column(db.Integer, nullable=False)
-    credits = db.Column(db.Integer, default=3, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    subject_name = Column(String(100), nullable=False)
+    course = Column(String(50), nullable=False)
+    semester = Column(Integer, nullable=False)
+    credits = Column(Integer, default=3, nullable=False)
 
     def to_dict(self):
         return {
@@ -67,18 +73,19 @@ class Subject(db.Model):
             'credits': self.credits
         }
 
-class Marks(db.Model):
+
+class Marks(Base):
     __tablename__ = 'marks'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    roll_no = db.Column(db.Integer, db.ForeignKey('student.roll_no', ondelete='CASCADE'), nullable=False)
-    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
-    marks = db.Column(db.Integer, nullable=False)
-    course = db.Column(db.String(50), nullable=False)
-    semester = db.Column(db.Integer, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    roll_no = Column(Integer, ForeignKey('student.roll_no', ondelete='CASCADE'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
+    marks = Column(Integer, nullable=False)
+    course = Column(String(50), nullable=False)
+    semester = Column(Integer, nullable=False)
 
     # Relationships
-    student = db.relationship('Student', backref=db.backref('marks_list', cascade='all, delete-orphan'))
-    subject = db.relationship('Subject', backref=db.backref('marks_list', cascade='all, delete-orphan'))
+    student = relationship('Student', backref='marks_list')
+    subject = relationship('Subject', backref='marks_list')
 
     def to_dict(self):
         return {
@@ -90,13 +97,14 @@ class Marks(db.Model):
             'semester': self.semester
         }
 
-class GradingScheme(db.Model):
+
+class GradingScheme(Base):
     __tablename__ = 'grading_schemes'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    grade_letter = db.Column(db.String(5), nullable=False)
-    min_pct = db.Column(db.Float, nullable=False)
-    max_pct = db.Column(db.Float, nullable=False)
-    grade_point = db.Column(db.Float, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    grade_letter = Column(String(5), nullable=False)
+    min_pct = Column(Float, nullable=False)
+    max_pct = Column(Float, nullable=False)
+    grade_point = Column(Float, nullable=False)
 
     def to_dict(self):
         return {
@@ -107,20 +115,21 @@ class GradingScheme(db.Model):
             'grade_point': self.grade_point
         }
 
-class Backlog(db.Model):
+
+class Backlog(Base):
     __tablename__ = 'backlogs'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    roll_no = db.Column(db.Integer, db.ForeignKey('student.roll_no', ondelete='CASCADE'), nullable=False)
-    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
-    semester = db.Column(db.Integer, nullable=False)
-    original_marks = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(20), default='pending', nullable=False)  # 'pending', 'cleared'
-    cleared_marks = db.Column(db.Integer, nullable=True)
-    cleared_date = db.Column(db.DateTime, nullable=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    roll_no = Column(Integer, ForeignKey('student.roll_no', ondelete='CASCADE'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
+    semester = Column(Integer, nullable=False)
+    original_marks = Column(Integer, nullable=False)
+    status = Column(String(20), default='pending', nullable=False)  # 'pending', 'cleared'
+    cleared_marks = Column(Integer, nullable=True)
+    cleared_date = Column(DateTime, nullable=True)
 
     # Relationships
-    student = db.relationship('Student', backref=db.backref('backlogs_list', cascade='all, delete-orphan'))
-    subject = db.relationship('Subject', backref=db.backref('backlogs_list', cascade='all, delete-orphan'))
+    student = relationship('Student', backref='backlogs_list')
+    subject = relationship('Subject', backref='backlogs_list')
 
     def to_dict(self):
         return {
@@ -134,14 +143,15 @@ class Backlog(db.Model):
             'cleared_date': self.cleared_date.strftime('%Y-%m-%d %H:%M:%S') if self.cleared_date else None
         }
 
-class Notification(db.Model):
+
+class Notification(Base):
     __tablename__ = 'notifications'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_role = db.Column(db.String(20), nullable=False)  # 'student', 'teacher', 'admin'
-    user_id = db.Column(db.String(50), nullable=False)    # roll_no, teacher_id, or username
-    message = db.Column(db.Text, nullable=False)
-    is_read = db.Column(db.Boolean, default=False, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_role = Column(String(20), nullable=False)  # 'student', 'teacher', 'admin'
+    user_id = Column(String(50), nullable=False)    # roll_no, teacher_id, or username
+    message = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     def to_dict(self):
         return {
@@ -153,20 +163,21 @@ class Notification(db.Model):
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 
-class AuditLog(db.Model):
+
+class AuditLog(Base):
     __tablename__ = 'audit_logs'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    actor_role = db.Column(db.String(20), nullable=False)  # 'admin', 'teacher'
-    actor_id = db.Column(db.String(50), nullable=False)    # username, teacher_id
-    action = db.Column(db.String(50), nullable=False)      # 'create', 'edit'
-    target_roll_no = db.Column(db.Integer, nullable=False)
-    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
-    old_value = db.Column(db.Integer, nullable=True)
-    new_value = db.Column(db.Integer, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    actor_role = Column(String(20), nullable=False)  # 'admin', 'teacher'
+    actor_id = Column(String(50), nullable=False)    # username, teacher_id
+    action = Column(String(50), nullable=False)      # 'create', 'edit'
+    target_roll_no = Column(Integer, nullable=False)
+    subject_id = Column(Integer, ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
+    old_value = Column(Integer, nullable=True)
+    new_value = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    subject = db.relationship('Subject')
+    subject = relationship('Subject')
 
     def to_dict(self):
         return {
@@ -181,16 +192,17 @@ class AuditLog(db.Model):
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         }
 
-class Verification(db.Model):
+
+class Verification(Base):
     __tablename__ = 'verifications'
-    token = db.Column(db.String(64), primary_key=True)
-    roll_no = db.Column(db.Integer, db.ForeignKey('student.roll_no', ondelete='CASCADE'), nullable=False)
-    semester = db.Column(db.Integer, nullable=False)
-    hash_val = db.Column(db.String(64), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    token = Column(String(64), primary_key=True)
+    roll_no = Column(Integer, ForeignKey('student.roll_no', ondelete='CASCADE'), nullable=False)
+    semester = Column(Integer, nullable=False)
+    hash_val = Column(String(64), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    student = db.relationship('Student')
+    student = relationship('Student')
 
     def to_dict(self):
         return {
@@ -201,10 +213,11 @@ class Verification(db.Model):
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 
-class SystemSetting(db.Model):
+
+class SystemSetting(Base):
     __tablename__ = 'system_settings'
-    key = db.Column(db.String(50), primary_key=True)
-    value = db.Column(db.String(50), nullable=False)
+    key = Column(String(50), primary_key=True)
+    value = Column(String(50), nullable=False)
 
     def to_dict(self):
         return {

@@ -133,7 +133,7 @@
     <div class="{% if session.get('role') %}main-content{% else %}container d-flex align-items-center justify-content-center min-vh-100{% endif %}">
         <div class="w-100 animate-fade-in">
             <!-- FLASH MESSAGES -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% set messages = get_flashed_messages(request) %}
                 {% if messages %}
                     {% for category, message in messages %}
                         <div class="alert alert-glass {% if category == 'success' %}alert-glass-success{% endif %} alert-dismissible fade show" role="alert">
@@ -143,7 +143,6 @@
                         </div>
                     {% endfor %}
                 {% endif %}
-            {% endwith %}
 
             {% block content %}{% endblock %}
         </div>
