@@ -77,20 +77,20 @@ Jinja2 Templates → Rendered HTML Response
 
 ## 📂 Project Structure
 
-srms_fastapi/
-├── app/
-│ ├── main.py # App entrypoint, middleware, router registration
-│ ├── config.py # Environment-based configuration
-│ ├── database.py # Engine, session factory, DB dependency
-│ ├── models.py # SQLAlchemy ORM models
-│ ├── security.py # Password hashing, session auth, flash messaging
-│ ├── utils.py # GPA/rank/at-risk business logic
-│ ├── pdf_generator.py # PDF + QR scorecard generation
-│ ├── seed.py # Demo data seeding
-│ └── routers/ # Feature-scoped route modules
-├── templates/ # Jinja2 views
-├── static/ # CSS assets
-└── requirements.txt
+srms_fastapi/ <br>
+├── app/<br>
+│ ├── main.py # App entrypoint, middleware, router registration<br>
+│ ├── config.py # Environment-based configuration<br>
+│ ├── database.py # Engine, session factory, DB dependency<br>
+│ ├── models.py # SQLAlchemy ORM models<br>
+│ ├── security.py # Password hashing, session auth, flash messaging<br>
+│ ├── utils.py # GPA/rank/at-risk business logic<br>
+│ ├── pdf_generator.py # PDF + QR scorecard generation<br>
+│ ├── seed.py # Demo data seeding<br>
+│ └── routers/ # Feature-scoped route modules<br>
+├── templates/ # Jinja2 views<br>
+├── static/ # CSS assets<br>
+└── requirements.txt<br>
 
 
 ---
