@@ -144,5 +144,5 @@ python run.py
 
 ## 👤 Author
 
-Amol Kottalagi
+Amol Kottalagi <br>
 kottalagiamol05@gmail.com
